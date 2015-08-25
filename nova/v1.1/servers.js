@@ -53,15 +53,23 @@ var ServerManager = base.Manager.extend({
     // Convenience method for simplest boot-from-volume case; parity with boot from image.
     // NOT REFLECTIVE OF THE UNDERLYING API.
     // TODO: Support full block device mapping featureset.
-    if (params.data.volumeRef && !params.data.imageRef) {
+    if (params.data.volumeRef || params.data.snapshotRef) && !params.data.imageRef) {
       params.data.block_device_mapping = [{
         device_name: 'vda',
-        source_type: 'volume',
-        volume_id: params.data.volumeRef,
         delete_on_termination: 0,
-        boot_index: 0,
-        uuid: params.data.volumeRef
+        boot_index: 0
       }];
+
+      if (params.data.volumeRef) {
+        params.data.block_device_mapping[0]['source_type'] = 'volume';
+        params.data.block_device_mapping[0]['volume_id'] = params.data.volumeRef;
+        params.data.block_device_mapping[0]['uuid'] = params.data.volumeRef;
+      } else {
+        params.data.block_device_mapping[0]['source_type'] = 'snapshot';
+        params.data.block_device_mapping[0]['snapshot_id'] = params.data.snapshotRef;
+        params.data.block_device_mapping[0]['uuid'] = params.data.snapshotRef;
+      }
+
       delete params.data.volumeRef;
     }
 
